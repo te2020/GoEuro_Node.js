@@ -90,6 +90,7 @@ nodejs. besten loggin in die Konsole
                 },
                 url: "http://www.goeuro.com/GoEuroAPI/rest/api/v5/searches",
                 type: "POST",
+                crossDomain: true,
                 data: suchObjekt,
                 success: function (data, textStatus) {
                     console.log(data);
@@ -116,7 +117,7 @@ nodejs. besten loggin in die Konsole
                         "travelModes": ["Flight", "Train", "Bus"],
                         "departureDate": "2017-05-20",
                         "returnDate": null,
-                        "passengers": [{"age": 12}],
+                        "passengers": [{"age": 28}],
                         "userInfo": {
                             "identifier": "0.2dw5wk24p6g",
                             "domain": ".com",
@@ -127,53 +128,52 @@ nodejs. besten loggin in die Konsole
                     }
                 };
 
-                for (pos = 377001; pos < 377015; pos++) {
+                for (pos = 377002; pos < 377003; pos++) {
+
+                    if (suchObjekt.searchOptions.arrivalPosition.id == pos)
+                        continue;
+
+                    if (suchObjekt.searchOptions.departurePosition.id == pos)
+                        continue;
+
                     //änder nur die
-
-
                     suchObjekt.searchOptions.arrivalPosition.id = pos;
-                    setTimeout(function () {
-                        var promiseSearchId = GibMirDieSearchId(JSON.stringify(suchObjekt));
 
-                        promiseSearchId.done(function (data, textStatus, jqXHR) {
+                    var promiseSearchId = GibMirDieSearchId(JSON.stringify(suchObjekt));
 
-                            var searchId = data.searchId;
+                    promiseSearchId.done(function (data, textStatus, jqXHR) {
 
-                            //Delay
-                            setTimeout(function () {
-                                //eigentlicher Ajax call, der das suchergebnis abholt
-                                $.ajax({
-                                    /* - > dieses Suchergebnis filtern, nur billigste - also nur ein Ergebnis - Verbindung anzeigen - > beim klicken auf das Sortieren der Spalten in goeuro im Ajax request nachschauen*/
-                                    url: "https://www.goeuro.com/GoEuroAPI/rest/api/v5/results?search_id=" + searchId + "&?price_from=1&stops=0|1|2%3B-1&limit=1&offset=0&position_report_enabled=true&all_positions=true&sort_by=price",
-                                    type: 'GET',
-                                    success: function (data, textStatus) {
-
-                                        console.log(data);
-                                        //überprüfe ob alle Daten korrekt sind erst dann zeichnen sonst loggen in die Konsole ?
+                        var searchId = data.searchId;
 
 
-                                        //hole mir billigstes Angebot - das ist das Erste - d abereits vorsortiert wurde
-                                        var firstOutbound = data.outbounds[Object.keys(data.outbounds)[0]];
+                        //eigentlicher Ajax call, der das suchergebnis abholt
+                        $.ajax({
+                            /* - > dieses Suchergebnis filtern, nur billigste - also nur ein Ergebnis - Verbindung anzeigen - > beim klicken auf das Sortieren der Spalten in goeuro im Ajax request nachschauen*/
+                            url: "https://www.goeuro.com/GoEuroAPI/rest/api/v5/results?search_id=" + searchId + "&?price_from=1&stops=0|1|2%3B-1&limit=1&offset=0&position_report_enabled=true&all_positions=true&sort_by=price",
+                            type: 'GET',
+                            crossDomain: true,
+                            success: function (data, textStatus) {
 
-                                         var position;
-
-                                        for (segment = 0/* 0. Element ist default*/; segment < firstOutbound.segments.length; segment++) {
-
-                                            //break on not undefined segment
-                                            var correctSegment = firstOutbound.segments[segment];
-                                            var segmentDetail = data.segmentDetails[correctSegment];
-                                            var arrivalPosition = segmentDetail.arrivalPosition;
-                                             position = data.positionReport[arrivalPosition];
-
-                                            if (position) {
-                                                //Das ist die richtige Position ? oder in positionReport ?
-                                                break;
-                                            }
-
-                                        }
+                                console.log(data);
+                                //überprüfe ob alle Daten korrekt sind erst dann zeichnen sonst loggen in die Konsole ?
 
 
-                                        //done
+                                //hole mir billigstes Angebot - das ist das Erste - d abereits vorsortiert wurde
+                                var firstOutbound = data.outbounds[Object.keys(data.outbounds)[0]];
+
+                                var position;
+
+                                for (segment = 0/* 0. Element ist default*/; segment < firstOutbound.segments.length; segment++) {
+
+                                    //break on not undefined segment
+                                    var correctSegment = firstOutbound.segments[segment];
+                                    var segmentDetail = data.segmentDetails[correctSegment];
+                                    var arrivalPosition = segmentDetail.arrivalPosition;
+                                    position = data.positionReport[arrivalPosition];
+
+                                    if (position) {
+                                        //Das ist die richtige Position ? oder in positionReport ?
+                                        //Er fährt von verschiedenen Positionen:
                                         ZeichnePin({
                                             Lat: position.latitude,
                                             Long: position.longitude,
@@ -183,26 +183,24 @@ nodejs. besten loggin in die Konsole
                                             Duration: Math.round(firstOutbound.duration / 60),
                                             SearchUrl: '<a href="https://www.goeuro.com/travel-search2/results/' + searchId + '/' + firstOutbound.mode + '" target="_blank">goeuro.com</a>'
                                         });
-
-
-                                    },
-                                    error: function (xhr, textStatus, errorThrown) {
-                                        alert('request failed');
-                                        //subtrahiere von der Menge der Städte ein, damit Progress stimmt am Ende
-//addiere Fehler 1
-                                    },
-                                    always: function (dataOrjqXHR, textStatus, jqXHRorErrorThrown) {
-                                        console.log('always was called');
                                     }
-                                });
-                            }, 10);
 
-
+                                }
+                            },
+                            error: function (xhr, textStatus, errorThrown) {
+                                alert('request failed');
+                                //subtrahiere von der Menge der Städte ein, damit Progress stimmt am Ende
+//addiere Fehler 1
+                            },
+                            always: function (dataOrjqXHR, textStatus, jqXHRorErrorThrown) {
+                                console.log('always was called');
+                            }
                         });
 
-                        //progress. Fail...
-                    }, 20);
 
+                    });
+
+                    //progress. Fail...
                 }
 
             } catch (e) {
@@ -216,7 +214,6 @@ nodejs. besten loggin in die Konsole
 
             var text = "<b>Hello " + pin.City + "!</b><br>" +
                     pin.Type + "<br>" +
-                    pin.Lat + "/" + pin.Long + "<br>" +
                     pin.Price + " EUR<br>" +
                     pin.Duration + " h<br>" +
                     pin.SearchUrl + "<br>";
