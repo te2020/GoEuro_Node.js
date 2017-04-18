@@ -1,0 +1,241 @@
+<!--<h1>{{title}}</h1>
+<p>Welcome to {{title}}</p>-->
+
+<div class="container-fluid">
+    <div class="col">
+        <h1 data-bind="text: TestBinding">Knockout-Spielwiese</h1>
+    </div>
+</div>
+
+
+<div id="mapid"/>
+
+
+<!--
+   sobald verfügbar promise
+popup preis und link
+nodejs. besten loggin in die Konsole
+
+-->
+
+<script type="text/javascript">
+
+    //SONSTIGES
+
+    $("#Departure").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: "dd.mm.yy"
+    });
+
+    $('#startSearch').click(function (e) {
+//disable bzw. enable
+
+        //e.preventDefault();
+    });
+
+    //KO
+    var model = {
+        TestBinding: '\"TestBinding\" ist kein Observable.',
+        Departure: ko.observable(""),
+        Price: ko.observable(0),
+        City: ko.observable(""),
+        NumberOfCities: ko.observable(50),
+        CityCounter: ko.observable(0),
+
+        GeoJson: {}
+    };
+    ko.applyBindings(model);
+
+    //Regions in webstorm ?, node.js
+    //disable all button for a short time, until first fail or done.
+
+    //stackoverflow mit uglified url überprüfen lassen, warum hedader und footer nicht fix
+
+    //JavaScript GoEuro OHNE Node.js
+
+    /*
+    Infos sammeln(kaputte Library):
+    headers({ 'Content-Type': 'application/json; charset=UTF-8' }
+    const SEARCH_URL = 'http://www.goeuro.com/GoEuroAPI/rest/api/v3/search';
+    const RESULTS_URL = 'http://www.goeuro.com/GoEuroAPI/rest/api/v5/results';
+
+    Module:
+    var _unirest = require('unirest');
+
+
+    search(params) gibt ein Promise zurück
+     */
+
+    /*//Leaflet*/
+    var mymap = L.map('mapid').setView([49.46, 11.06], 6);
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+        maxZoom: 18,
+        id: 'rakshak.l937n12c',
+        accessToken: 'pk.eyJ1IjoicmFrc2hhayIsImEiOiJ5cHhqeHlRIn0.Vi87VjI1cKbl1lhOn95Lpw'
+    }).addTo(mymap);
+
+    $(function () {
+
+        console.log("Start!");
+
+
+        Main();
+
+        function GibMirDieSearchId(suchObjekt) {
+            return $.ajax({
+                headers: {
+                    'Content-Type': 'application/json; charset=UTF-8'
+                },
+                url: "http://www.goeuro.com/GoEuroAPI/rest/api/v5/searches",
+                type: "POST",
+                data: suchObjekt,
+                success: function (data, textStatus) {
+                    console.log(data);
+                },
+                always: function (dataOrjqXHR, textStatus, jqXHRorErrorThrown) {
+                    console.log('always was called');
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    console.error(errorThrown);
+                    //subtrahiere von der Menge der Städte ein, damit Progress stimmt am Ende
+//addiere Fehler 1
+                }
+            });
+
+        }
+
+        function Main() {
+
+            try {
+                var suchObjekt = {
+                    "searchOptions": {
+                        "departurePosition": {"id": 377001},
+                        "arrivalPosition": {"id": 375859},
+                        "travelModes": ["Flight", "Train", "Bus"],
+                        "departureDate": "2017-05-20",
+                        "returnDate": null,
+                        "passengers": [{"age": 12}],
+                        "userInfo": {
+                            "identifier": "0.2dw5wk24p6g",
+                            "domain": ".com",
+                            "locale": "en",
+                            "currency": "EUR"
+                        },
+                        "abTestParameters": []
+                    }
+                };
+
+                for (pos = 377001; pos < 377015; pos++) {
+                    //änder nur die
+
+
+                    suchObjekt.searchOptions.arrivalPosition.id = pos;
+                    setTimeout(function () {
+                        var promiseSearchId = GibMirDieSearchId(JSON.stringify(suchObjekt));
+
+                        promiseSearchId.done(function (data, textStatus, jqXHR) {
+
+                            var searchId = data.searchId;
+
+                            //Delay
+                            setTimeout(function () {
+                                //eigentlicher Ajax call, der das suchergebnis abholt
+                                $.ajax({
+                                    /* - > dieses Suchergebnis filtern, nur billigste - also nur ein Ergebnis - Verbindung anzeigen - > beim klicken auf das Sortieren der Spalten in goeuro im Ajax request nachschauen*/
+                                    url: "https://www.goeuro.com/GoEuroAPI/rest/api/v5/results?search_id=" + searchId + "&?price_from=1&stops=0|1|2%3B-1&limit=1&offset=0&position_report_enabled=true&all_positions=true&sort_by=price",
+                                    type: 'GET',
+                                    success: function (data, textStatus) {
+
+                                        console.log(data);
+                                        //überprüfe ob alle Daten korrekt sind erst dann zeichnen sonst loggen in die Konsole ?
+
+
+                                        //hole mir billigstes Angebot - das ist das Erste - d abereits vorsortiert wurde
+                                        var firstOutbound = data.outbounds[Object.keys(data.outbounds)[0]];
+
+                                         var position;
+
+                                        for (segment = 0/* 0. Element ist default*/; segment < firstOutbound.segments.length; segment++) {
+
+                                            //break on not undefined segment
+                                            var correctSegment = firstOutbound.segments[segment];
+                                            var segmentDetail = data.segmentDetails[correctSegment];
+                                            var arrivalPosition = segmentDetail.arrivalPosition;
+                                             position = data.positionReport[arrivalPosition];
+
+                                            if (position) {
+                                                //Das ist die richtige Position ? oder in positionReport ?
+                                                break;
+                                            }
+
+                                        }
+
+
+                                        //done
+                                        ZeichnePin({
+                                            Lat: position.latitude,
+                                            Long: position.longitude,
+                                            City: position.cityName,
+                                            Price: (firstOutbound.price / 100),
+                                            Type: firstOutbound.mode,
+                                            Duration: Math.round(firstOutbound.duration / 60),
+                                            SearchUrl: '<a href="https://www.goeuro.com/travel-search2/results/' + searchId + '/' + firstOutbound.mode + '" target="_blank">goeuro.com</a>'
+                                        });
+
+
+                                    },
+                                    error: function (xhr, textStatus, errorThrown) {
+                                        alert('request failed');
+                                        //subtrahiere von der Menge der Städte ein, damit Progress stimmt am Ende
+//addiere Fehler 1
+                                    },
+                                    always: function (dataOrjqXHR, textStatus, jqXHRorErrorThrown) {
+                                        console.log('always was called');
+                                    }
+                                });
+                            }, 10);
+
+
+                        });
+
+                        //progress. Fail...
+                    }, 20);
+
+                }
+
+            } catch (e) {
+
+            }
+
+
+        }
+
+        function ZeichnePin(pin) {
+
+            var text = "<b>Hello " + pin.City + "!</b><br>" +
+                    pin.Type + "<br>" +
+                    pin.Lat + "/" + pin.Long + "<br>" +
+                    pin.Price + " EUR<br>" +
+                    pin.Duration + " h<br>" +
+                    pin.SearchUrl + "<br>";
+
+            var marker = L.marker([pin.Lat, pin.Long]).addTo(mymap).bindPopup(text);
+
+        }
+
+        //oder besser ein und ausblenden
+        function LoeschePin(pins) {
+//array mindestens 1 element sonst exception ?!
+        }
+
+        //click binding to pin, when clicked on that element Ajax call zur wettervorhersage für diesen Tag
+
+        //Filter suche, nicht erneut suchen
+        //Tag suche plus Datum nur anzeigen, nachdem Ergebnisse geladen wurden, Filter einblenden
+        //ko-binding -> ShowFilter, zeige Prozess wie er die Pinsel rauslöscht
+        //blocking-binding ui
+    });
+
+</script>
