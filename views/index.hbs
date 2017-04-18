@@ -128,7 +128,7 @@ nodejs. besten loggin in die Konsole
                     }
                 };
 
-                for (pos = 377002; pos < 377003; pos++) {
+                for (pos = 377002; pos < 377013; pos++) {
 
                     if (suchObjekt.searchOptions.arrivalPosition.id == pos)
                         continue;
@@ -161,31 +161,26 @@ nodejs. besten loggin in die Konsole
                                 //hole mir billigstes Angebot - das ist das Erste - d abereits vorsortiert wurde
                                 var firstOutbound = data.outbounds[Object.keys(data.outbounds)[0]];
 
-                                var position;
+                                if (!firstOutbound)
+                                    console.info(data);
+                                else {
 
-                                for (segment = 0/* 0. Element ist default*/; segment < firstOutbound.segments.length; segment++) {
+                                    //nur wenn definiert
+                                    var position=data.positions[data.query.arrivalPosition];
 
-                                    //break on not undefined segment
-                                    var correctSegment = firstOutbound.segments[segment];
-                                    var segmentDetail = data.segmentDetails[correctSegment];
-                                    var arrivalPosition = segmentDetail.arrivalPosition;
-                                    position = data.positionReport[arrivalPosition];
-
-                                    if (position) {
-                                        //Das ist die richtige Position ? oder in positionReport ?
-                                        //Er fährt von verschiedenen Positionen:
-                                        ZeichnePin({
-                                            Lat: position.latitude,
-                                            Long: position.longitude,
-                                            City: position.cityName,
-                                            Price: (firstOutbound.price / 100),
-                                            Type: firstOutbound.mode,
-                                            Duration: Math.round(firstOutbound.duration / 60),
-                                            SearchUrl: '<a href="https://www.goeuro.com/travel-search2/results/' + searchId + '/' + firstOutbound.mode + '" target="_blank">goeuro.com</a>'
-                                        });
-                                    }
+                                    ZeichnePin({
+                                        Lat: position.latitude,
+                                        Long: position.longitude,
+                                        City: position.cityName,
+                                        Price: (firstOutbound.price / 100),
+                                        Type: firstOutbound.mode,
+                                        Duration: Math.round(firstOutbound.duration / 60),
+                                        SearchUrl: '<a href="https://www.goeuro.com/travel-search2/results/' + searchId + '/' + firstOutbound.mode + '" target="_blank">goeuro.com</a>'
+                                    });
 
                                 }
+
+
                             },
                             error: function (xhr, textStatus, errorThrown) {
                                 alert('request failed');
