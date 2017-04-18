@@ -35,6 +35,9 @@ nodejs. besten loggin in die Konsole
     });
 
     //KO
+    //KEINE OBSERAVBLES; DA NACHDEM NÄCHSTEN SUCHEN GELÖSCHT UND SONST NUR EIN/AUSGEBLENDET WIRD
+    //nur datum...suche obserables
+    //array aus pins
     var model = {
         TestBinding: '\"TestBinding\" ist kein Observable.',
         Departure: ko.observable(""),
@@ -166,7 +169,7 @@ nodejs. besten loggin in die Konsole
                                 else {
 
                                     //nur wenn definiert
-                                    var position=data.positions[data.query.arrivalPosition];
+                                    var position = data.positions[data.query.arrivalPosition];
 
                                     ZeichnePin({
                                         Lat: position.latitude,
@@ -174,6 +177,7 @@ nodejs. besten loggin in die Konsole
                                         City: position.cityName,
                                         Price: (firstOutbound.price / 100),
                                         Type: firstOutbound.mode,
+                                        TabIndex: data.query.arrivalPosition,
                                         Duration: Math.round(firstOutbound.duration / 60),
                                         SearchUrl: '<a href="https://www.goeuro.com/travel-search2/results/' + searchId + '/' + firstOutbound.mode + '" target="_blank">goeuro.com</a>'
                                     });
@@ -215,10 +219,14 @@ nodejs. besten loggin in die Konsole
 
             var marker = L.marker([pin.Lat, pin.Long]).addTo(mymap).bindPopup(text);
 
+            $(marker._icon).attr('tabindex', pin.TabIndex);
+
+            console.log($(marker._icon));
         }
 
         //oder besser ein und ausblenden
         function LoeschePin(pins) {
+            //tabindex="0",tabindex="1" ... auch ins binding quasi als Id eintragen
 //array mindestens 1 element sonst exception ?!
         }
 
