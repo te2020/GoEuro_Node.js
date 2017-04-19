@@ -3,7 +3,7 @@
 
 <div class="container-fluid">
     <div class="col">
-        <h1 data-bind="text: TestBinding">Knockout-Spielwiese</h1>
+        <h1>Knockout-Spielwiese</h1>
     </div>
 </div>
 
@@ -46,17 +46,64 @@ nodejs. besten loggin in die Konsole
     //KEINE OBSERAVBLES; DA NACHDEM NÄCHSTEN SUCHEN GELÖSCHT UND SONST NUR EIN/AUSGEBLENDET WIRD
     //nur datum...suche obserables
     //array aus pins
-    var model = {
-        TestBinding: '\"TestBinding\" ist kein Observable.',
-        Departure: ko.observable(""),
-        Price: ko.observable(0),
-        City: ko.observable(""),
-        NumberOfCities: ko.observable(50),
-        CityCounter: ko.observable(0),
+    function Filter() {
+        /// <summary>Child View Model</summary>
+        this.Departure = ko.observable();
+        this.Price = ko.observable();
+        this.NumberOfCities = ko.observable();
+        this.CityCounter = ko.observable();
+    }
 
-        GeoJson: {}
+    function SuchObjekt() {
+        /// <summary>Child View Model</summary>
+        this.Departure = ko.observable();
+        this.Price = ko.observable();
+        this.NumberOfCities = ko.observable();
+        this.CityCounter = ko.observable();
+
+
+    }
+
+    function Pin() {
+        /// <summary>Child View Model</summary>
+        this.Lat = 0;
+        this.Long = 0;
+        this.City = "";
+        this.Price = 0;
+        this.Type = "";
+        this.TabIndex = 0;
+        this.SearchUrl = "";
+    }
+
+    var suchObjekt = {
+        "searchOptions": {
+            "departurePosition": {"id": 377001},
+            "arrivalPosition": {"id": 375859},
+            "travelModes": ["Flight", "Train", "Bus"],
+            "departureDate": "2017-05-20",
+            "returnDate": null,
+            "passengers": [{"age": 28}],
+            "userInfo": {
+                "identifier": "0.2dw5wk24p6g",
+                "domain": ".com",
+                "locale": "en",
+                "currency": "EUR"
+            },
+            "abTestParameters": []
+        }
     };
-    ko.applyBindings(model);
+
+    //new ViewModel(); a.Filter().Departure()
+    function ViewModel() {
+        var self = this;
+
+        self.SuchObjekt = ko.observable(suchObjekt);
+        self.Filter = ko.observable(new Filter());
+        self.Pins = [];//new Pin()
+    }
+
+    var _model = new ViewModel();
+    ko.applyBindings();
 
     //Regions in webstorm ?, node.js
     //disable all button for a short time, until first fail or done.
@@ -127,26 +174,10 @@ nodejs. besten loggin in die Konsole
         function Main() {
 
             try {
-                var suchObjekt = {
-                    "searchOptions": {
-                        "departurePosition": {"id": 377001},
-                        "arrivalPosition": {"id": 375859},
-                        "travelModes": ["Flight", "Train", "Bus"],
-                        "departureDate": "2017-05-20",
-                        "returnDate": null,
-                        "passengers": [{"age": 28}],
-                        "userInfo": {
-                            "identifier": "0.2dw5wk24p6g",
-                            "domain": ".com",
-                            "locale": "en",
-                            "currency": "EUR"
-                        },
-                        "abTestParameters": []
-                    }
-                };
 
                 for (pos = 377002; pos < 377013; pos++) {
 
+                    //_model.SuchObjekt().searchOptions.arrivalPosition.id
                     if (suchObjekt.searchOptions.arrivalPosition.id == pos)
                         continue;
 
@@ -238,6 +269,8 @@ nodejs. besten loggin in die Konsole
             var marker = L.marker([pin.Lat, pin.Long]).addTo(mymap).bindPopup(text);
             $(marker._icon).attr('tabindex', pin.TabIndex);
 
+            _model.Pins.push(pin);//zum Filtern bereitstellen
+            
 //            console.log($(marker._icon));
         }
 
