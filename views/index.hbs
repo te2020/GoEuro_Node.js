@@ -20,6 +20,14 @@ nodejs. besten loggin in die Konsole
 
 <script type="text/javascript">
 
+    window.onerror = function (messageOrEvent, source, lineno, colno, error) {
+        console.log(messageOrEvent);
+        console.log(source);
+        console.log(lineno);
+        console.log(colno);
+        console.log(error);
+    };
+
     //SONSTIGES
 
     $("#Departure").datepicker({
@@ -70,18 +78,24 @@ nodejs. besten loggin in die Konsole
     search(params) gibt ein Promise zurück
      */
 
-    /*//Leaflet*/
-    var mymap = L.map('mapid').setView([49.46, 11.06], 6);
-    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-        maxZoom: 18,
-        id: 'rakshak.l937n12c',
-        accessToken: 'pk.eyJ1IjoicmFrc2hhayIsImEiOiJ5cHhqeHlRIn0.Vi87VjI1cKbl1lhOn95Lpw'
-    }).addTo(mymap);
 
     $(function () {
 
+        /*//Leaflet*/
+        var mymap = L.map('mapid').setView([49.46, 11.06], 6);
+        L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+            maxZoom: 18,
+            id: 'rakshak.l937n12c',
+            accessToken: 'pk.eyJ1IjoicmFrc2hhayIsImEiOiJ5cHhqeHlRIn0.Vi87VjI1cKbl1lhOn95Lpw'
+        }).addTo(mymap);
+
         console.log("Start!");
+
+
+        //Filter suche, nicht erneut suchen
+        //Tag suche plus Datum nur anzeigen, nachdem Ergebnisse geladen wurden, Filter einblenden
+        //ko-binding -> ShowFilter, zeige Prozess wie er die Pins rauslöscht
 
 
         Main();
@@ -217,25 +231,49 @@ nodejs. besten loggin in die Konsole
                     pin.Duration + " h<br>" +
                     pin.SearchUrl + "<br>";
 
-            var marker = L.marker([pin.Lat, pin.Long]).addTo(mymap).bindPopup(text);
+            //todo: click binding to pin, when clicked on that element Ajax call zur wettervorhersage für diesen Tag
+            //https://openweathermap.org/current
+            //http://www.myweather2.com/developer/apis.aspx?uref=228b1fd1-f8ab-44df-9bd8-1494c086b79e
 
+            var marker = L.marker([pin.Lat, pin.Long]).addTo(mymap).bindPopup(text);
             $(marker._icon).attr('tabindex', pin.TabIndex);
 
-            console.log($(marker._icon));
+//            console.log($(marker._icon));
         }
 
-        //oder besser ein und ausblenden
-        function LoeschePin(pins) {
-            //tabindex="0",tabindex="1" ... auch ins binding quasi als Id eintragen
-//array mindestens 1 element sonst exception ?!
+
+        function ShowPin(tabindex) {
+            $("img[tabindex='" + tabindex + "']").css("display", "initial");
         }
 
-        //click binding to pin, when clicked on that element Ajax call zur wettervorhersage für diesen Tag
+        function HidePin(tabindex) {
+            $("img[tabindex='" + tabindex + "']").css("display", "none");
+        }
 
-        //Filter suche, nicht erneut suchen
-        //Tag suche plus Datum nur anzeigen, nachdem Ergebnisse geladen wurden, Filter einblenden
-        //ko-binding -> ShowFilter, zeige Prozess wie er die Pinsel rauslöscht
-        //blocking-binding ui
+        function BerechneProgressbar(wert) {
+            //oder besser value-Binding ?!
+            $("#progressbar").css('width', wert + '%').attr('aria-valuenow', wert);
+            $("#progressbar").text(wert + "%");
+
+            //   var tempProzentwert = 25 + (goEuroRestApiCounter * 75 / window.data.Search_Ids.length);
+        }
+
+        function EnableInputs() {
+            $("#startSearch").prop("disabled", true);
+        }
+
+        function DisableInputs() {
+            $("#startSearch").prop("disabled", false);
+        }
+
+        function Disable_StartButton() {
+            $("#startSearch").prop("disabled", false);
+        }
+
+        function Enable_StartButton() {
+            $("#startSearch").prop("disabled", true);
+        }
+
     });
 
 </script>
