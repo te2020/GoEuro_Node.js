@@ -54,16 +54,6 @@ nodejs. besten loggin in die Konsole
         this.CityCounter = ko.observable();
     }
 
-    function SuchObjekt() {
-        /// <summary>Child View Model</summary>
-        this.Departure = ko.observable();
-        this.Price = ko.observable();
-        this.NumberOfCities = ko.observable();
-        this.CityCounter = ko.observable();
-
-
-    }
-
     function Pin() {
         /// <summary>Child View Model</summary>
         this.Lat = 0;
@@ -84,7 +74,7 @@ nodejs. besten loggin in die Konsole
             "returnDate": null,
             "passengers": [{"age": 28}],
             "userInfo": {
-                "identifier": "0.2dw5wk24p6g",
+                "identifier": "0.5zcaxyl2eck",
                 "domain": ".com",
                 "locale": "en",
                 "currency": "EUR"
@@ -93,38 +83,49 @@ nodejs. besten loggin in die Konsole
         }
     };
 
+    var SuchObjekt = {
+        searchOptions: {
+            departurePosition: {id: 377001},
+            arrivalPosition: {id: 375859},
+            travelModes: ["Flight", "Train", "Bus"],
+            departureDate: "2017-05-20",
+            returnDate: null,
+            passengers: [{age: 28}],
+            userInfo: {
+                identifier: "0.s92og7hgxo",
+                domain: ".com",
+                locale: "en",
+                currency: "EUR"
+            },
+            abTestParameters: []
+        }
+    };
+
     //new ViewModel(); a.Filter().Departure()
     function ViewModel() {
         var self = this;
 
-        self.SuchObjekt = ko.observable(suchObjekt);
+        self.SuchObjekt = ko.observable(SuchObjekt);
         self.Filter = ko.observable(new Filter());
         self.Pins = [];//new Pin()
+
+
+        self.RemoveDate = function (date) {
+            alert(self.Pins[0].Price)
+            //this.dates.remove(date);
+        }
     }
 
+
+    ViewModel.prototype.addDate = function () {
+        var self = this.Pin;
+        if (self.Lat) {
+            self.Lat = 666;
+        }
+    };
+
     var _model = new ViewModel();
-    ko.applyBindings();
-
-    //Regions in webstorm ?, node.js
-    //disable all button for a short time, until first fail or done.
-
-    //stackoverflow mit uglified url überprüfen lassen, warum hedader und footer nicht fix
-
-    //JavaScript GoEuro OHNE Node.js
-
-    /*
-    Infos sammeln(kaputte Library):
-    headers({ 'Content-Type': 'application/json; charset=UTF-8' }
-    const SEARCH_URL = 'http://www.goeuro.com/GoEuroAPI/rest/api/v3/search';
-    const RESULTS_URL = 'http://www.goeuro.com/GoEuroAPI/rest/api/v5/results';
-
-    Module:
-    var _unirest = require('unirest');
-
-
-    search(params) gibt ein Promise zurück
-     */
-
+    ko.applyBindings(_model);
 
     $(function () {
 
@@ -147,8 +148,13 @@ nodejs. besten loggin in die Konsole
 
         Main();
 
+
         function GibMirDieSearchId(suchObjekt) {
-            return $.ajax({
+            //deferred und mit Verzögerung reject, accept
+
+            var dfd = $.Deferred();
+
+            $.ajax({
                 headers: {
                     'Content-Type': 'application/json; charset=UTF-8'
                 },
@@ -157,17 +163,27 @@ nodejs. besten loggin in die Konsole
                 crossDomain: true,
                 data: suchObjekt,
                 success: function (data, textStatus) {
-                    console.log(data);
+                    setTimeout(function() {
+                        console.log(data);
+
+                        dfd.resolve( data );
+
+                    }, 2000);
                 },
                 always: function (dataOrjqXHR, textStatus, jqXHRorErrorThrown) {
                     console.log('always was called');
+
+                    dfd.reject();
                 },
                 error: function (xhr, textStatus, errorThrown) {
                     console.error(errorThrown);
                     //subtrahiere von der Menge der Städte ein, damit Progress stimmt am Ende
 //addiere Fehler 1
+                    EnableInputs();
                 }
             });
+
+            return dfd.promise();
 
         }
 
@@ -175,7 +191,7 @@ nodejs. besten loggin in die Konsole
 
             try {
 
-                for (pos = 377002; pos < 377013; pos++) {
+                for (var pos = 377002; pos < 377005; pos++) {
 
                     //_model.SuchObjekt().searchOptions.arrivalPosition.id
                     if (suchObjekt.searchOptions.arrivalPosition.id == pos)
@@ -235,20 +251,18 @@ nodejs. besten loggin in die Konsole
                                 alert('request failed');
                                 //subtrahiere von der Menge der Städte ein, damit Progress stimmt am Ende
 //addiere Fehler 1
+                                EnableInputs();
                             },
                             always: function (dataOrjqXHR, textStatus, jqXHRorErrorThrown) {
                                 console.log('always was called');
                             }
                         });
-
-
+                        //progress. Fail...
                     });
-
-                    //progress. Fail...
                 }
 
             } catch (e) {
-
+                EnableInputs();
             }
 
 
@@ -270,7 +284,7 @@ nodejs. besten loggin in die Konsole
             $(marker._icon).attr('tabindex', pin.TabIndex);
 
             _model.Pins.push(pin);//zum Filtern bereitstellen
-            
+
 //            console.log($(marker._icon));
         }
 
@@ -292,11 +306,11 @@ nodejs. besten loggin in die Konsole
         }
 
         function EnableInputs() {
-            $("#startSearch").prop("disabled", true);
+            $("input").prop("disabled", true);
         }
 
         function DisableInputs() {
-            $("#startSearch").prop("disabled", false);
+            $("input").prop("disabled", false);
         }
 
         function Disable_StartButton() {

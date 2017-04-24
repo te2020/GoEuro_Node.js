@@ -8,7 +8,20 @@ var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var users = require('./routes/users');
 
+/*
+ http://stackoverflow.com/questions/20035101/no-access-control-allow-origin-header-is-present-on-the-requested-resource
  
+ Infos sammeln(kaputte Library):
+ headers({ 'Content-Type': 'application/json; charset=UTF-8' }
+ const SEARCH_URL = 'http://www.goeuro.com/GoEuroAPI/rest/api/v3/search';
+ const RESULTS_URL = 'http://www.goeuro.com/GoEuroAPI/rest/api/v5/results';
+
+ Module:
+ var _unirest = require('unirest');
+
+
+ search(params) gibt ein Promise zurück
+ */
 
 var app = express();
 
